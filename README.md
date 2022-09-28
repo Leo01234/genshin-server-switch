@@ -1,7 +1,7 @@
 # genshin-server-switch
 原神pc端简易转服脚本，官服与b服互转
 
-适用于3.0版本
+适用于3.1版本
 
 ## 依赖
 - `python3`
@@ -13,7 +13,7 @@
 3. 当无原神相关程序运行时，运行`switch.bat`文件，会自动检测当前为哪一个服务器，并作出切换
 
 ## 原理
-原神3.0版本官服与b服切换只需要变动3个文件：
+原神3.1版本官服与b服切换只需要变动3个文件：
 - 启动器配置文件`C:\Program Files\Genshin Impact\config.ini`
 - 游戏配置文件`C:\Program Files\Genshin Impact\Genshin Impact Game\config.ini`
 - `PCGameSDK.dll`文件`C:\Program Files\Genshin Impact\Genshin Impact Game\YuanShen_Data\Plugins\PCGameSDK.dll`
