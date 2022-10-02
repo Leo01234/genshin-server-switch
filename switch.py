@@ -2,6 +2,7 @@ import ctypes
 import configparser
 import os
 import shutil
+import winreg
 from tkinter import *
 from tkinter import ttk
 from tkinter import messagebox
@@ -71,7 +72,10 @@ def check():
 def check_and_switch():
     check()
 
-    if old == 'mihoyo':
+    if old == 'error':
+        return
+
+    elif old == 'mihoyo':
         launcher_config['launcher'].update(bilibili)
         game_config['General'].update(bilibili)
 
@@ -96,23 +100,38 @@ def check_and_switch():
     check()
 
 
+def get_launcher_install_path():
+    registry_key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE,
+                                  r'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\原神',
+                                  0, winreg.KEY_READ)
+    value, regtype = winreg.QueryValueEx(registry_key, 'InstallPath')
+    winreg.CloseKey(registry_key)
+    return value
+
+
 if __name__ == "__main__":
     if is_admin():
         # 各种常量定义
         mihoyo = {'channel': '1', 'sub_channel': '1', 'cps': 'mihoyo'}
         bilibili = {'channel': '14', 'sub_channel': '0', 'cps': 'bilibili'}
-        launcher_config_path = r'C:\Program Files\Genshin Impact\config.ini'
-        game_config_path = r'C:\Program Files\Genshin Impact\Genshin Impact Game\config.ini'
-
-        PCGameSDK_path = r'C:\Program Files\Genshin Impact\Genshin Impact Game\YuanShen_Data\Plugins\PCGameSDK.dll'
-        PCGameSDK_folder, PCGameSDK_name = os.path.split(PCGameSDK_path)
 
         launcher_config = configparser.ConfigParser()
         game_config = configparser.ConfigParser()
 
+        launcher_config_path = get_launcher_install_path() + r'\config.ini'
+        launcher_config.read(launcher_config_path)
+        game_install_path = launcher_config['launcher']['game_install_path']
+        game_config_path = game_install_path.replace('/', '\\') + r'\config.ini'
+
+        PCGameSDK_path = game_install_path.replace('/', '\\') + r'\YuanShen_Data\Plugins\PCGameSDK.dll'
+        PCGameSDK_folder, PCGameSDK_name = os.path.split(PCGameSDK_path)
+
         old = ''
 
         # ============= GUI ============
+        # adapt high dpi display
+        ctypes.windll.shcore.SetProcessDpiAwareness(1)
+
         # override method
         Tk.report_callback_exception = report_callback_exception
 
@@ -131,23 +150,45 @@ if __name__ == "__main__":
         root.columnconfigure(0, weight=1)
         root.rowconfigure(0, weight=1)
 
-        ttk.Label(mainframe, text="启动器配置文件状态: ").grid(column=1, row=1, sticky=W)
-        ttk.Label(mainframe, text="游戏配置文件状态: ").grid(column=1, row=2, sticky=W)
-        ttk.Label(mainframe, text="PCGameSDK.dll 文件状态: ").grid(column=1, row=3, sticky=W)
+        ttk.Label(mainframe, text="启动器配置文件状态: ").grid(column=0, row=0, sticky=W)
+        ttk.Label(mainframe, text="游戏配置文件状态: ").grid(column=0, row=1, sticky=W)
+        ttk.Label(mainframe, text="PCGameSDK.dll 文件状态: ").grid(column=0, row=2, sticky=W)
 
-        ttk.Label(mainframe, textvariable=launcher_config_status).grid(column=2, row=1, sticky=E)
-        ttk.Label(mainframe, textvariable=game_config_status).grid(column=2, row=2, sticky=E)
-        ttk.Label(mainframe, textvariable=PCGameSDK_status).grid(column=2, row=3, sticky=E)
+        ttk.Label(mainframe, textvariable=launcher_config_status).grid(column=1, row=0, sticky=E)
+        ttk.Label(mainframe, textvariable=game_config_status).grid(column=1, row=1, sticky=E)
+        ttk.Label(mainframe, textvariable=PCGameSDK_status).grid(column=1, row=2, sticky=E)
 
         check_button = ttk.Button(mainframe, text="检查", command=check)
-        check_button.grid(column=1, row=4, sticky=W)
+        check_button.grid(column=0, row=3, sticky=W)
         check_and_switch_button = ttk.Button(mainframe, text="检查并切换", command=check_and_switch)
-        check_and_switch_button.grid(column=2, row=4, sticky=E)
+        check_and_switch_button.grid(column=1, row=3, sticky=E)
+
+        mainframe.columnconfigure(0, weight=1)
+        mainframe.columnconfigure(1, weight=1)
+
+        mainframe.rowconfigure(0, weight=1)
+        mainframe.rowconfigure(1, weight=1)
+        mainframe.rowconfigure(2, weight=1)
+        mainframe.rowconfigure(3, weight=1)
 
         for child in mainframe.winfo_children():
             child.grid_configure(padx=5, pady=5)
         check_and_switch_button.focus()
 
+        # 居中窗口
+        # get screen width and height
+        ws = root.winfo_screenwidth()  # width of the screen
+        hs = root.winfo_screenheight()  # height of the screen
+        w = ws / 6  # width for the Tk root
+        h = hs / 5  # height for the Tk root
+
+        # calculate x and y coordinates for the Tk root window
+        x = (ws / 2) - (w / 2)
+        y = (hs / 2) - (h / 2)
+
+        # set the dimensions of the screen
+        # and where it is placed
+        root.geometry('%dx%d+%d+%d' % (w, h, x, y))
         root.mainloop()
 
     else:
