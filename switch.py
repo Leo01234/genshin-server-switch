@@ -3,6 +3,7 @@ import configparser
 import os
 import shutil
 import winreg
+import subprocess
 from tkinter import *
 from tkinter import ttk
 from tkinter import messagebox
@@ -51,10 +52,12 @@ def check():
 
     if not os.path.isfile(PCGameSDK_path):
         PCGameSDK_status.set('官服')
-    elif os.path.isfile(PCGameSDK_path):
-        PCGameSDK_status.set('b服')
     else:
-        PCGameSDK_status.set('状态异常')
+        PCGameSDK_status.set('b服')
+    # elif os.path.isfile(PCGameSDK_path):
+    #     PCGameSDK_status.set('b服')
+    # else:
+    #     PCGameSDK_status.set('状态异常')
 
     if (launcher_config_status.get() == '官服' and
             game_config_status.get() == '官服' and
@@ -109,6 +112,21 @@ def get_launcher_install_path():
     return value
 
 
+def open_launcher_config_in_explorer():
+    subprocess.Popen(r'explorer /select,"' + launcher_config_path + '"')
+
+
+def open_game_config_in_explorer():
+    subprocess.Popen(r'explorer /select,"' + game_config_path + '"')
+
+
+def open_PCGameSDK_in_explorer():
+    if PCGameSDK_status.get() == '官服':
+        subprocess.Popen(r'explorer "' + PCGameSDK_folder + '"')
+    elif PCGameSDK_status.get() == 'b服':
+        subprocess.Popen(r'explorer /select,"' + PCGameSDK_path + '"')
+
+
 if __name__ == "__main__":
     if is_admin():
         # 各种常量定义
@@ -150,26 +168,28 @@ if __name__ == "__main__":
         root.columnconfigure(0, weight=1)
         root.rowconfigure(0, weight=1)
 
-        ttk.Label(mainframe, text="启动器配置文件状态: ").grid(column=0, row=0, sticky=W)
-        ttk.Label(mainframe, text="游戏配置文件状态: ").grid(column=0, row=1, sticky=W)
-        ttk.Label(mainframe, text="PCGameSDK.dll 文件状态: ").grid(column=0, row=2, sticky=W)
+        ttk.Label(mainframe, text="启动器配置文件").grid(column=0, row=1, sticky=W)
+        ttk.Label(mainframe, text="游戏配置文件").grid(column=0, row=2, sticky=W)
+        ttk.Label(mainframe, text="PCGameSDK.dll 文件").grid(column=0, row=3, sticky=W)
 
-        ttk.Label(mainframe, textvariable=launcher_config_status).grid(column=1, row=0, sticky=E)
-        ttk.Label(mainframe, textvariable=game_config_status).grid(column=1, row=1, sticky=E)
-        ttk.Label(mainframe, textvariable=PCGameSDK_status).grid(column=1, row=2, sticky=E)
+        ttk.Label(mainframe, text="打开文件位置").grid(column=1, row=0, sticky=(W, E))
+        ttk.Label(mainframe, text="状态").grid(column=2, row=0, sticky=E)
+
+        ttk.Button(mainframe, text="位置", command=open_launcher_config_in_explorer).grid(column=1, row=1, sticky=(W, E))
+        ttk.Button(mainframe, text="位置", command=open_game_config_in_explorer).grid(column=1, row=2, sticky=(W, E))
+        ttk.Button(mainframe, text="位置", command=open_PCGameSDK_in_explorer).grid(column=1, row=3, sticky=(W, E))
+
+        ttk.Label(mainframe, textvariable=launcher_config_status).grid(column=2, row=1, sticky=E)
+        ttk.Label(mainframe, textvariable=game_config_status).grid(column=2, row=2, sticky=E)
+        ttk.Label(mainframe, textvariable=PCGameSDK_status).grid(column=2, row=3, sticky=E)
 
         check_button = ttk.Button(mainframe, text="检查", command=check)
-        check_button.grid(column=0, row=3, sticky=W)
+        check_button.grid(column=0, row=4, sticky=W)
         check_and_switch_button = ttk.Button(mainframe, text="检查并切换", command=check_and_switch)
-        check_and_switch_button.grid(column=1, row=3, sticky=E)
+        check_and_switch_button.grid(column=2, row=4, sticky=E)
 
-        mainframe.columnconfigure(0, weight=1)
-        mainframe.columnconfigure(1, weight=1)
-
-        mainframe.rowconfigure(0, weight=1)
-        mainframe.rowconfigure(1, weight=1)
-        mainframe.rowconfigure(2, weight=1)
-        mainframe.rowconfigure(3, weight=1)
+        mainframe.columnconfigure((0, 1, 2), weight=1)
+        mainframe.rowconfigure((0, 1, 2, 3, 4), weight=1)
 
         for child in mainframe.winfo_children():
             child.grid_configure(padx=5, pady=5)
@@ -179,8 +199,8 @@ if __name__ == "__main__":
         # get screen width and height
         ws = root.winfo_screenwidth()  # width of the screen
         hs = root.winfo_screenheight()  # height of the screen
-        w = ws / 6  # width for the Tk root
-        h = hs / 5  # height for the Tk root
+        w = ws / 5  # width for the Tk root
+        h = hs / 4  # height for the Tk root
 
         # calculate x and y coordinates for the Tk root window
         x = (ws / 2) - (w / 2)
